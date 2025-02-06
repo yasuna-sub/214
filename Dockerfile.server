@@ -1,0 +1,53 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Build arguments
+ARG VERTEX_PROJECT_ID
+ARG VERTEX_LOCATION
+ARG VERTEX_MODEL_NAME
+ARG CORS_ORIGINS
+
+# Set environment variables (trim any whitespace)
+ENV VERTEX_PROJECT_ID=${VERTEX_PROJECT_ID}
+ENV VERTEX_LOCATION=${VERTEX_LOCATION}
+ENV VERTEX_MODEL_NAME=${VERTEX_MODEL_NAME}
+ENV CORS_ORIGINS=${CORS_ORIGINS}
+ENV PORT=8080
+ENV NODE_ENV=production
+ENV GOOGLE_CLOUD_PROJECT=${VERTEX_PROJECT_ID}
+ENV GOOGLE_CLOUD_LOCATION=${VERTEX_LOCATION}
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies only
+RUN npm ci --only=production
+
+# Copy server file
+COPY server.js ./
+
+# Add debugging information
+RUN echo "Environment variables:"
+RUN env | sort
+
+# Add configuration verification
+RUN echo "Verifying server.js exists:"
+RUN ls -la server.js
+RUN echo "Node.js version:"
+RUN node --version
+RUN echo "NPM version:"
+RUN npm --version
+
+# Health check configuration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/health || exit 1
+
+EXPOSE ${PORT}
+
+# Use dumb-init to handle signals properly
+RUN apk add --no-cache dumb-init
+
+# Start the application with dumb-init and enable detailed logging
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+CMD ["node", "--trace-warnings", "--enable-source-maps", "--trace-uncaught", "--unhandled-rejections=strict", "server.js"] 
