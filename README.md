@@ -57,7 +57,7 @@
 ## クイックスタート
 **1. リポジトリのクローン**
 ```bash
-git clone [repository-url]
+git clone https://github.com/yasuna-sub/214.git
 ```
 
 **2. 依存パッケージのインストール**
@@ -205,7 +205,7 @@ Google Cloudのクレジットを活用させていただき、Cloud Run, Cloud 
 ## Setup
 **1. Clone repository**
 ```bash
-git clone [repository-url]
+git clone https://github.com/yasuna-sub/214.git
 ```
 
 **2. Install dependencies**
